@@ -5,13 +5,9 @@ start:
 	pushl $13
 	pushl $message
 	calll displayStr
-<<<<<<< HEAD
-loop:
-	jmp loop
-=======
+
 loop32:
 	jmp loop32
->>>>>>> lab1
 
 message:
 	.string "Hello, World!\n\0"
