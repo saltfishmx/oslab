@@ -80,9 +80,41 @@ void printf(const char *format,...){
 	char *string=0;
 	char character=0;
 	while(format[i]!=0){
-		buffer[count] = format[i];
-		count++;
-		// TODO: in lab2
+		
+		
+		//  in lab2
+		if(format[i]=='%'){
+			i++;
+			switch(format[i]){
+				case 'd':
+					decimal = *((int *)(paraList + 4 * index));
+					index++;
+					count = dec2Str(decimal, buffer, MAX_BUFFER_SIZE, count);
+					break;
+				case 'x':
+					hexadecimal = *((uint32_t *)(paraList + 4 * index));
+					index++;
+					count = hex2Str(hexadecimal, buffer, MAX_BUFFER_SIZE, count);
+					break;
+				case 's':
+					string = *((char **)(paraList + 4 * index));
+					index++;
+					count = str2Str(string, buffer, MAX_BUFFER_SIZE, count);
+					break;
+				case 'c':
+					character = *((char *)(paraList + 4 * index));
+					index++;
+					buffer[count++] = character;
+					break;
+			}
+		}
+		else{
+			buffer[count++] = format[i];
+		}
+		if(count==MAX_BUFFER_SIZE){
+			syscall(SYS_WRITE, STD_OUT, (uint32_t)buffer, (uint32_t)MAX_BUFFER_SIZE, 0, 0);
+		}
+		i++;
 	}
 	if(count!=0)
 		syscall(SYS_WRITE, STD_OUT, (uint32_t)buffer, (uint32_t)count, 0, 0);
