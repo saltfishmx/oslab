@@ -76,7 +76,7 @@ void KeyboardHandle(struct TrapFrame *tf)
 		displayCol = 0;
 		if (displayRow == 25)
 		{ //full screnn: 25 * 80
-			displayRow == 24;
+			displayRow = 24;
 			scrollScreen();
 		}
 		keyBuffer[bufferTail] = '\n';
@@ -98,12 +98,12 @@ void KeyboardHandle(struct TrapFrame *tf)
 				displayCol = 0;
 				if (displayRow == 25)
 				{ //full screnn: 25 * 80
-					displayRow == 24;
+					displayRow = 24;
 					scrollScreen();
 				}
 			}
 			keyBuffer[bufferTail] = data;
-			bufferTail = (bufferTail + 1) % MAX_KEYBUFFER_SIZE;			
+			bufferTail = (bufferTail + 1) % MAX_KEYBUFFER_SIZE;
 		}
 	}
 	updateCursor(displayRow, displayCol);
@@ -138,13 +138,13 @@ void syscallWrite(struct TrapFrame *tf)
 
 void syscallPrint(struct TrapFrame *tf)
 {
-	int sel = USEL(SEG_UDATA);//: segment selector for user data, need further modification
+	int sel = USEL(SEG_UDATA); //: segment selector for user data, need further modification
 	char *str = (char *)tf->edx;
 	int size = tf->ebx;
 	int i = 0;
-	int pos = 0;
+	//int pos = 0;
 	char character = 0;
-	uint16_t data = 0;
+	//uint16_t data = 0;
 	asm volatile("movw %0, %%es" ::"m"(sel));
 	for (i = 0; i < size; i++)
 	{
@@ -174,10 +174,52 @@ void syscallRead(struct TrapFrame *tf)
 
 void syscallGetChar(struct TrapFrame *tf)
 {
-	// TODO: 自由实现
+	//  自由实现
+	if (bufferHead == bufferTail)
+	{
+		while (bufferHead == bufferTail)
+			asm volatile("hlt");
+		while (keyBuffer[(bufferTail + MAX_KEYBUFFER_SIZE - 1) % MAX_KEYBUFFER_SIZE] != '\n')
+			asm volatile("hlt");
+		tf->eax = keyBuffer[bufferHead];
+		bufferHead = (bufferHead + 1) % MAX_KEYBUFFER_SIZE;
+		if ((bufferTail + MAX_KEYBUFFER_SIZE - 1) % MAX_KEYBUFFER_SIZE == bufferHead)
+			bufferHead = bufferTail;
+	}
+	else
+	{
+		tf->eax = keyBuffer[bufferHead];
+		bufferHead = (bufferHead + 1) % MAX_KEYBUFFER_SIZE;
+	}
 }
 
 void syscallGetStr(struct TrapFrame *tf)
 {
-	// TODO: 自由实现
+	//  自由实现
+	int sel = USEL(SEG_UDATA);
+	char *str = (char *)tf->edx;
+	int size = tf->ebx;
+	char character;
+	int i = 0;
+	asm volatile("movw %0, %%es" ::"m"(sel));
+	if (bufferHead == bufferTail)
+	{
+		while (bufferHead == bufferTail)
+			asm volatile("hlt");
+		while (keyBuffer[(bufferTail + MAX_KEYBUFFER_SIZE - 1) % MAX_KEYBUFFER_SIZE] != '\n')
+			asm volatile("hlt");
+	}
+	while (i < size - 1)
+	{
+		if (keyBuffer[bufferHead] == '\n')
+		{
+			bufferHead = (bufferHead + 1) % MAX_KEYBUFFER_SIZE;
+			break;
+		}
+		character = keyBuffer[bufferHead];
+		bufferHead = (bufferHead + 1) % MAX_KEYBUFFER_SIZE;
+		asm volatile("movb %0, %%es:(%1)" ::"r"(character), "r"(str + i));
+		i++;
+	}
+	asm volatile("movb $0, %%es:(%0)" ::"r"(str + i));
 }

@@ -1,5 +1,5 @@
 QEMU = qemu-system-i386
-
+CFLAGS =  gcc -fno-asynchronous-unwind-tables
 os.img:
 	@cd bootloader; make
 	@cd kernel; make

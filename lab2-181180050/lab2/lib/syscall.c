@@ -56,12 +56,13 @@ int32_t syscall(int num, uint32_t a1,uint32_t a2,
 }
 
 char getChar(){ // 对应SYS_READ STD_IN
-	// TODO: 实现getChar函数，方式不限
+	//  实现getChar函数，方式不限
+	return syscall(SYS_READ,STD_IN,0,0,0,0);
 }
 
 void getStr(char *str, int size){ // 对应SYS_READ STD_STR
-	// TODO: 实现getStr函数，方式不限
-	return;
+	//  实现getStr函数，方式不限
+	syscall(SYS_READ, STD_STR, (uint32_t)str, size, 0, 0);
 }
 
 int dec2Str(int decimal, char *buffer, int size, int count);
@@ -74,7 +75,7 @@ void printf(const char *format,...){
 	int count=0; // buffer index
 	int index=0; // parameter index
 	void *paraList=(void*)&format; // address of format in stack
-	int state=0; // 0: legal character; 1: '%'; 2: illegal format
+	//int state=0; // 0: legal character; 1: '%'; 2: illegal format
 	int decimal=0;
 	uint32_t hexadecimal=0;
 	char *string=0;

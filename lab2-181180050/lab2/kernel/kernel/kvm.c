@@ -63,14 +63,14 @@ void loadUMain(void) {
 	int phoff = 0x34;
 	int offset = 0x1000;
 	unsigned int elf = 0x200000;
-	void (*uMainEntry)(void);
-	uMainEntry = (void(*)(void))0x200000;
+
+	
 
 	for (i = 0; i < 200; i++) {
 		readSect((void*)(elf + i*512), 1+i);
 	}
 
-	uMainEntry = (void(*)(void))((struct ELFHeader *)elf)->entry;// // Call the entry point from the ELF header.
+	uint32_t uMainEntry = ((struct ELFHeader *)elf)->entry;// // Call the entry point from the ELF header.
 	phoff = ((struct ELFHeader *)elf)->phoff;
 	offset = ((struct ProgramHeader *)(elf + phoff))->off;
 
